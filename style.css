@@ -91,11 +91,17 @@ body {
 /* --- 状態変化クラス --- */
 .correct-answer {
     z-index: 20;
-    box-shadow: 0 0 0 4px #fff, 0 10px 40px rgba(0,0,0,0.5);
-    transform: scale(1.05) !important;
+    /* 白い枠線を削除し、影だけ残して浮き上がらせる */
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    /* サイズをもう少し大きくして目立たせる */
+    transform: scale(1.15) !important;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+.god-eye {
+    /* 枠線を削除し、後ろに光が広がる演出だけにする */
+    box-shadow: 0 0 80px var(--accent-color);
+}
 .fade-out {
     filter: brightness(0.4) grayscale(0.6);
     transform: scale(0.95) !important;
