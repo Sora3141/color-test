@@ -1,7 +1,7 @@
 const state = {
     score: 0,
     bestScore: parseInt(localStorage.getItem('hueHunterBest')) || 0,
-    currentDiff: 40,
+    currentDiff: 40, // RGB値の差（初期値）
     isGameOver: false,
     isPeeking: false
 };
@@ -18,19 +18,15 @@ const ui = {
     startScreen: document.getElementById('start-screen')
 };
 
-// ゲーム初期化（スタート画面で待機）
 function init() {
-    // 盤面はまだ空にしておく
     ui.board.innerHTML = '';
 }
 
-// ボタンが押されたらスタート
 function startGame() {
-    // スタート画面をフェードアウト
     ui.startScreen.style.opacity = '0';
     setTimeout(() => {
         ui.startScreen.style.display = 'none';
-        renderGame(); // ここで初めてゲーム生成
+        renderGame();
     }, 500);
 }
 
@@ -38,11 +34,32 @@ function renderGame() {
     if (state.isGameOver && !state.isPeeking) return;
     ui.board.innerHTML = '';
     
+    // 1. まずは HSL で「ベースとなる綺麗な色」を決める
     const h = Math.floor(Math.random() * 360);
-    const s = 65;
-    const l = 55;
+    const s = 70; // 鮮やかさを固定
+    const l = 50; // 明るさを固定（極端に暗くならない）
+
+    // 2. 一時的な要素を作って、ブラウザに HSL -> RGB の変換をさせる
+    const tempDiv = document.createElement('div');
+    tempDiv.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+    document.body.appendChild(tempDiv);
+    const rgbString = window.getComputedStyle(tempDiv).backgroundColor; // "rgb(r, g, b)" の形式で取得
+    document.body.removeChild(tempDiv);
+
+    // 3. 取得したRGB値を数値に分解する
+    const rgbValues = rgbString.match(/\d+/g).map(Number);
+    let r = rgbValues[0];
+    let g = rgbValues[1];
+    let b = rgbValues[2];
+
+    // 4. RGBの差分（d）を計算（100回目で1になるように）
+    const d = Math.max(1, Math.round(state.currentDiff));
+
+    // 5. 正解のブロックが「明るくなりすぎて白飛び」しないように調整
+    // もし加算して255を超える場合は、正解の方をベースにして不正解の方を「引く」
+    const isOver = (r + d > 255 || g + d > 255 || b + d > 255);
+    
     const correctIndex = Math.floor(Math.random() * 25);
-    const targetDiff = Math.max(0.5, state.currentDiff);
 
     for (let i = 0; i < 25; i++) {
         const block = document.createElement('div');
@@ -53,11 +70,21 @@ function renderGame() {
         block.style.animationDelay = `${delay}s`;
 
         if (i === correctIndex) {
-            block.style.backgroundColor = `hsl(${h + targetDiff}, ${s}%, ${l}%)`;
+            if (isOver) {
+                // 白飛びしそうな時は、ベース色をそのまま正解にする
+                block.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            } else {
+                block.style.backgroundColor = `rgb(${r + d}, ${g + d}, ${b + d})`;
+            }
             block.id = "target";
             block.onclick = (e) => handleCorrect(e);
         } else {
-            block.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+            if (isOver) {
+                // 白飛びしそうな時は、不正解の方を暗くする
+                block.style.backgroundColor = `rgb(${r - d}, ${g - d}, ${b - d})`;
+            } else {
+                block.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            }
             block.onclick = (e) => handleIncorrect(e);
         }
         block.addEventListener('touchstart', (e) => {}, {passive: true});
@@ -70,9 +97,10 @@ function handleCorrect(e) {
     if(state.isGameOver) return;
     state.score++;
     ui.score.innerText = state.score;
-    if (state.score % 3 === 0) {
-        state.currentDiff = Math.max(0.5, state.currentDiff * 0.875);
-    }
+    
+    // 減少率 0.9632 を毎ステップ掛けることで100回目に約1になる
+    state.currentDiff = Math.max(1, state.currentDiff * 0.9632);
+    
     renderGame();
 }
 
@@ -93,7 +121,8 @@ function handleIncorrect(e) {
     target.classList.remove('fade-out');
     target.classList.add('correct-answer');
     
-    if (state.currentDiff <= 0.6) {
+    // RGB差が1になったら特別なクラスを付与
+    if (state.currentDiff <= 1.5) {
         target.classList.add('god-eye');
     }
 
@@ -101,16 +130,15 @@ function handleIncorrect(e) {
 }
 
 function getRankInfo(diff, score) {
-    if (diff > 25) return { rank: "一般市民", msg: "色の違いに気づいて！" };
-    if (diff > 15) return { rank: "初心者", msg: "まずは10問を目指そう。" };
-    if (diff > 8)  return { rank: "見習い", msg: "色彩感覚が目覚めてきた。" };
-    if (diff > 4)  return { rank: "色彩愛好家", msg: "なかなか鋭いですね。" };
-    if (diff > 2)  return { rank: "色彩検定級", msg: "色のプロまであと一歩！" };
-    if (diff > 1)  return { rank: "熟練デザイナー", msg: "素晴らしい識別能力です。" };
-    if (diff > 0.7) return { rank: "色彩の魔術師", msg: "もはや達人の域です。" };
-    if (diff > 0.55) return { rank: "プロの極致", msg: "モニターの限界に挑んでいます。" };
-    if (score >= 100) return { rank: "✨神の目✨", msg: "0.5の壁を突破しました。" };
-    return { rank: "🌌次元の観測者", msg: "存在しないはずの色を見ています。" };
+    // RGBの差(diff)に基づいたランク判定
+    if (score >= 100) return { rank: "✨神の目✨", msg: "100回の壁を突破！RGB差1を見抜く伝説の目。" };
+    if (diff <= 1.5) return { rank: "プロの極致", msg: "モニターの物理的限界に到達しました。" };
+    if (diff <= 3)   return { rank: "色彩の魔術師", msg: "もはや達人の域です。" };
+    if (diff <= 6)   return { rank: "熟練デザイナー", msg: "素晴らしい識別能力です。" };
+    if (diff <= 12)  return { rank: "色彩愛好家", msg: "なかなか鋭いですね。" };
+    if (diff <= 20)  return { rank: "見習い", msg: "色彩感覚が目覚めてきた。" };
+    if (diff <= 30)  return { rank: "初心者", msg: "まずは10問を目指そう。" };
+    return { rank: "一般市民", msg: "色の違いに気づいて！" };
 }
 
 function showResult() {
@@ -125,7 +153,7 @@ function showResult() {
     ui.overlay.style.display = 'flex';
     requestAnimationFrame(() => {
         ui.overlay.classList.add('visible');
-        ui.backBtn.classList.remove('visible');
+        if(ui.backBtn) ui.backBtn.classList.remove('visible');
     });
 }
 
@@ -138,7 +166,7 @@ function peekBoard() {
     ui.overlay.classList.remove('visible');
     setTimeout(() => {
         ui.overlay.style.display = 'none';
-        ui.backBtn.classList.add('visible');
+        if(ui.backBtn) ui.backBtn.classList.add('visible');
     }, 300);
 }
 
