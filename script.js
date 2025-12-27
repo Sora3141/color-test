@@ -163,24 +163,22 @@ function handleIncorrect(e) {
 
 // ランク判定
 function getRankInfo(diff, score) {
-    // スコア100以上は殿堂入り
-    if (score >= 100) return { rank: "✨神の目✨", msg: "80から1を駆け抜けた伝説。" };
+    if (score >= 100) return { rank: "✨神の目✨", msg: "もはや、あなたを欺く色は存在しない。" };
 
-    // 以下、誤差(diff)が小さい（難しい）順に判定
-    if (diff <= 1.5) return { rank: "宇宙の理", msg: "RGBの粒子が見えています。" };
-    if (diff <= 3)   return { rank: "人間卒業", msg: "もはやモニターを超越した存在。" };
-    if (diff <= 6)   return { rank: "色彩の魔術師", msg: "常人には理解できない領域。" };
-    if (diff <= 10)  return { rank: "絶対色感", msg: "色の吐息が聞こえるレベル。" };
-    if (diff <= 16)  return { rank: "熟練デザイナー", msg: "1pxの狂いも許さない瞳。" };
-    if (diff <= 25)  return { rank: "鷹の目", msg: "獲物を逃さない鋭さがあります。" };
-    if (diff <= 40)  return { rank: "色彩ソムリエ", msg: "違いの分かる人になってきました。" };
-    if (diff <= 60)  return { rank: "見習い画家", msg: "才能の片鱗が見え隠れしています。" };
-    if (diff <= 75)  return { rank: "色彩愛好家", msg: "色の世界へようこそ！" };
+    if (diff <= 2)   return { rank: "宇宙の理", msg: "RGBの粒子が見えています。" };
+    if (diff <= 5)   return { rank: "人間卒業", msg: "もはやモニターを超越した存在。" };
+    if (diff <= 10)  return { rank: "色彩の魔術師", msg: "常人には理解できない領域。" };
+    if (diff <= 16)  return { rank: "絶対色感", msg: "色の吐息が聞こえるレベル。" }; // 少し広げました
+    if (diff <= 22)  return { rank: "熟練デザイナー", msg: "1pxの狂いも許さない瞳。" };
+    if (diff <= 30)  return { rank: "鷹の目", msg: "獲物を逃さない鋭さがあります。" }; // スコア40到達時点
+    if (diff <= 38)  return { rank: "色彩ソムリエ", msg: "違いの分かる人になってきました。" }; // スコア24到達時点
+    
+    // ▼ 修正: diff 45以下（スコア10到達）で昇格に変更
+    if (diff <= 45)  return { rank: "見習い画家", msg: "才能の片鱗が見え隠れしています。" };
 
-    // それ以外（スタート直後など）
-    return { rank: "一般市民", msg: "まずはリラックスして楽しもう。" };
+    // スコア0〜9の間
+    return { rank: "一般市民", msg: "あなたの色彩は、どの領域？" };
 }
-
 // 結果画面表示
 function showResult() {
     state.isPeeking = false;
