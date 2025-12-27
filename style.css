@@ -25,18 +25,12 @@ body {
 /* --- ヘッダーエリア --- */
 .header {
     position: absolute;
-
-    /* ▼▼▼ ここが魔法の計算式です ▼▼▼ */
-    /* 画面の高さの12% + スマホの上の安全地帯(ノッチ分) を足した位置に配置 */
     top: calc(12vh + env(safe-area-inset-top));
-
     width: 100%;
     text-align: center;
     pointer-events: none;
-    /* ゲームの邪魔をしない設定 */
     z-index: 10;
     transform: translateY(-50%);
-    /* 自身の高さの半分だけ上にずらして中心を合わせる */
 }
 
 .score-label {
@@ -96,15 +90,12 @@ body {
 /* --- 状態変化クラス --- */
 .correct-answer {
     z-index: 20;
-    /* 白い枠線を削除し、影だけ残して浮き上がらせる */
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-    /* サイズをもう少し大きくして目立たせる */
     transform: scale(1.15) !important;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .god-eye {
-    /* 枠線を削除し、後ろに光が広がる演出だけにする */
     box-shadow: 0 0 80px var(--accent-color);
 }
 
@@ -114,6 +105,7 @@ body {
     transition: all 0.5s ease;
 }
 
+/* 重複定義修正: god-eyeのスタイルを統合 */
 .god-eye {
     box-shadow: 0 0 0 4px var(--accent-color), 0 0 60px var(--accent-color);
 }
@@ -165,7 +157,8 @@ body {
     color: #fff;
     font-size: 1.6rem;
     font-weight: 900;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    /* アクセントカラーの光を追加 */
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 10px var(--accent-color);
 }
 
 .btn-start {
@@ -324,7 +317,7 @@ button {
     position: fixed;
     bottom: max(30px, env(safe-area-inset-bottom));
     left: 50%;
-    transform: translateX(-50%) translateY(100px);
+    transform: translateX(-50%) translateY(100px); /* 初期位置は画面外 */
     background: rgba(10, 10, 10, 0.8);
     backdrop-filter: blur(10px);
     color: white;
@@ -338,6 +331,7 @@ button {
     font-weight: 600;
 }
 
+/* visibleクラスがつくと画面内にスライドイン */
 #back-to-result.visible {
     transform: translateX(-50%) translateY(0);
 }

@@ -1,9 +1,9 @@
 const state = {
     score: 0,
     bestScore: parseInt(localStorage.getItem('hueHunterBest')) || 0,
-    currentDiff: 80, // 初期値を80に変更
+    currentDiff: 80, 
     isGameOver: false,
-    isPeeking: false
+    isPeeking: false // 盤面確認中かどうかのフラグ
 };
 
 const ui = {
@@ -14,7 +14,8 @@ const ui = {
     resMsg: document.getElementById('res-msg'),
     resScore: document.getElementById('res-score'),
     resBest: document.getElementById('res-best'),
-    startScreen: document.getElementById('start-screen')
+    startScreen: document.getElementById('start-screen'),
+    backBtn: document.getElementById('back-to-result') // 追加：結果に戻るボタン
 };
 
 function init() {
@@ -30,15 +31,17 @@ function startGame() {
 }
 
 function renderGame() {
+    // ゲームオーバー時でも、盤面確認中(isPeeking)なら再描画しない
     if (state.isGameOver && !state.isPeeking) return;
+    
     ui.board.innerHTML = '';
     
-    // 1. ベースの色をHSLで鮮やかに決定
+    // 1. HSLでベースの色決定
     const h = Math.floor(Math.random() * 360);
     const s = 70;
-    const l = 50;
+    const l = 50; // 中心付近の明るさにしておくことで、足す/引くどちらも選びやすくする
 
-    // 2. ブラウザの機能を使ってHSLからRGBの数値を取得
+    // 2. RGB計算
     const tempDiv = document.createElement('div');
     tempDiv.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
     document.body.appendChild(tempDiv);
@@ -50,11 +53,31 @@ function renderGame() {
     let g = rgbValues[1];
     let b = rgbValues[2];
 
-    // 3. RGBの差分（d）を計算
+    // 3. 差分計算
     const d = Math.max(1, Math.round(state.currentDiff));
 
-    // 4. 白飛び（255超え）対策の反転ロジック
-    const isOver = (r + d > 255 || g + d > 255 || b + d > 255);
+    // 4. 足すか引くかをランダムに決定（ここを変更）
+    // まずは50%の確率でプラス(1)かマイナス(-1)を決める
+    let sign = Math.random() < 0.5 ? 1 : -1;
+
+    // もし選んだ方向で計算すると「255を超える」または「0を下回る」色が1つでもある場合、
+    // 強制的に逆方向（signを反転）にする
+    if (
+        (sign === 1 && (r + d > 255 || g + d > 255 || b + d > 255)) ||
+        (sign === -1 && (r - d < 0 || g - d < 0 || b - d < 0))
+    ) {
+        sign *= -1;
+    }
+
+    // 正解の色（ターゲット）を計算
+    // 万が一反転しても範囲外になる極端なケースに備えて Math.min/max で0-255に丸める
+    const tr = Math.max(0, Math.min(255, r + (d * sign)));
+    const tg = Math.max(0, Math.min(255, g + (d * sign)));
+    const tb = Math.max(0, Math.min(255, b + (d * sign)));
+
+    const targetColorStr = `rgb(${tr}, ${tg}, ${tb})`; // 正解の色
+    const baseColorStr = `rgb(${r}, ${g}, ${b})`;       // 間違いの色（ベース）
+
     const correctIndex = Math.floor(Math.random() * 25);
 
     for (let i = 0; i < 25; i++) {
@@ -62,24 +85,30 @@ function renderGame() {
         block.className = 'block';
         const row = Math.floor(i / 5);
         const col = i % 5;
+        // アニメーション遅延
         const delay = (row + col) * 0.04;
         block.style.animationDelay = `${delay}s`;
 
         if (i === correctIndex) {
-            if (isOver) {
-                block.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-            } else {
-                block.style.backgroundColor = `rgb(${r + d}, ${g + d}, ${b + d})`;
-            }
+            // 正解のブロック
+            block.style.backgroundColor = targetColorStr;
             block.id = "target";
-            block.onclick = (e) => handleCorrect(e);
-        } else {
-            if (isOver) {
-                block.style.backgroundColor = `rgb(${r - d}, ${g - d}, ${b - d})`;
+            
+            // 既にゲームオーバーなら正解強調表示を維持
+            if (state.isGameOver) {
+                block.classList.add('correct-answer');
+                if(state.currentDiff <= 1.5) block.classList.add('god-eye');
             } else {
-                block.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                block.onclick = (e) => handleCorrect(e);
             }
-            block.onclick = (e) => handleIncorrect(e);
+        } else {
+            // その他のブロック
+            block.style.backgroundColor = baseColorStr;
+            
+            // 既にゲームオーバーならクリック無効にするだけ（fade-outは無し）
+            if (!state.isGameOver) {
+                block.onclick = (e) => handleIncorrect(e);
+            }
         }
         block.addEventListener('touchstart', (e) => {}, {passive: true});
         ui.board.appendChild(block);
@@ -92,7 +121,7 @@ function handleCorrect(e) {
     state.score++;
     ui.score.innerText = state.score;
     
-    // 初期値80から100回目で1にするための減少率: 0.957
+    // 難易度調整
     state.currentDiff = Math.max(1, state.currentDiff * 0.957);
     
     renderGame();
@@ -120,35 +149,73 @@ function handleIncorrect(e) {
     setTimeout(showResult, 1200);
 }
 
-// 以下、getRankInfoやshowResultなどはこれまでのコードと同様
+// ランク判定
 function getRankInfo(diff, score) {
+    // スコア100以上は殿堂入り
     if (score >= 100) return { rank: "✨神の目✨", msg: "80から1を駆け抜けた伝説。" };
-    if (diff <= 1.5) return { rank: "プロの極致", msg: "RGB差1の極小世界。" };
-    if (diff <= 4)   return { rank: "色彩の魔術師", msg: "達人です。" };
-    if (diff <= 10)  return { rank: "熟練デザイナー", msg: "素晴らしい識別能力。" };
-    if (diff <= 25)  return { rank: "色彩愛好家", msg: "鋭くなってきました。" };
-    return { rank: "一般市民", msg: "色の違いを楽しんで！" };
+
+    // 以下、誤差(diff)が小さい（難しい）順に判定
+    if (diff <= 1.5) return { rank: "宇宙の理", msg: "RGBの粒子が見えています。" };
+    if (diff <= 3)   return { rank: "人間卒業", msg: "もはやモニターを超越した存在。" };
+    if (diff <= 6)   return { rank: "色彩の魔術師", msg: "常人には理解できない領域。" };
+    if (diff <= 10)  return { rank: "絶対色感", msg: "色の吐息が聞こえるレベル。" };
+    if (diff <= 16)  return { rank: "熟練デザイナー", msg: "1pxの狂いも許さない瞳。" };
+    if (diff <= 25)  return { rank: "鷹の目", msg: "獲物を逃さない鋭さがあります。" };
+    if (diff <= 40)  return { rank: "色彩ソムリエ", msg: "違いの分かる人になってきました。" };
+    if (diff <= 60)  return { rank: "見習い画家", msg: "才能の片鱗が見え隠れしています。" };
+    if (diff <= 75)  return { rank: "色彩愛好家", msg: "色の世界へようこそ！" };
+
+    // それ以外（スタート直後など）
+    return { rank: "一般市民", msg: "まずはリラックスして楽しもう。" };
 }
 
+// 結果画面表示
 function showResult() {
     state.isPeeking = false;
+    
+    // 「結果に戻る」ボタンを隠す（CSSのtransformで下へスライド）
+    ui.backBtn.classList.remove('visible');
+
     const info = getRankInfo(state.currentDiff, state.score);
     ui.resRank.innerText = info.rank;
     ui.resMsg.innerText = info.msg;
     ui.resScore.innerText = state.score;
     ui.resBest.innerText = state.bestScore;
+    
     ui.overlay.style.display = 'flex';
     requestAnimationFrame(() => {
         ui.overlay.classList.add('visible');
     });
 }
 
+// 盤面確認機能（ここが新機能）
+function peekBoard() {
+    state.isPeeking = true;
+    
+    document.querySelectorAll('.block').forEach(b => {
+        b.classList.remove('fade-out');
+    });
+    // リザルトをフェードアウト
+    ui.overlay.classList.remove('visible');
+    
+    setTimeout(() => {
+        ui.overlay.style.display = 'none';
+        // 「結果に戻る」ボタンをスライドイン
+        ui.backBtn.classList.add('visible');
+    }, 300);
+}
+
+// ゲームリセット
 function resetGame() {
     state.score = 0;
-    state.currentDiff = 80; // リセット時も80に
+    state.currentDiff = 80; 
     state.isGameOver = false;
+    state.isPeeking = false;
+    
     ui.score.innerText = 0;
     ui.overlay.classList.remove('visible');
+    ui.backBtn.classList.remove('visible'); // 念のため戻るボタンも隠す
+    
     setTimeout(() => {
         ui.overlay.style.display = 'none';
         renderGame();
