@@ -25,16 +25,18 @@ body {
 /* --- ヘッダーエリア --- */
 .header {
     position: absolute;
-    
+
     /* ▼▼▼ ここが魔法の計算式です ▼▼▼ */
     /* 画面の高さの12% + スマホの上の安全地帯(ノッチ分) を足した位置に配置 */
     top: calc(12vh + env(safe-area-inset-top));
-    
+
     width: 100%;
     text-align: center;
-    pointer-events: none; /* ゲームの邪魔をしない設定 */
+    pointer-events: none;
+    /* ゲームの邪魔をしない設定 */
     z-index: 10;
-    transform: translateY(-50%); /* 自身の高さの半分だけ上にずらして中心を合わせる */
+    transform: translateY(-50%);
+    /* 自身の高さの半分だけ上にずらして中心を合わせる */
 }
 
 .score-label {
@@ -51,7 +53,7 @@ body {
     font-weight: 200;
     line-height: 1;
     margin: 0;
-    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* --- ゲームボード --- */
@@ -74,13 +76,16 @@ body {
     transform: scale(0);
     opacity: 0;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     -webkit-tap-highlight-color: transparent;
     transition: filter 0.3s ease;
 }
 
 @keyframes popIn {
-    to { transform: scale(1); opacity: 1; }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .block:active {
@@ -92,7 +97,7 @@ body {
 .correct-answer {
     z-index: 20;
     /* 白い枠線を削除し、影だけ残して浮き上がらせる */
-    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
     /* サイズをもう少し大きくして目立たせる */
     transform: scale(1.15) !important;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -102,6 +107,7 @@ body {
     /* 枠線を削除し、後ろに光が広がる演出だけにする */
     box-shadow: 0 0 80px var(--accent-color);
 }
+
 .fade-out {
     filter: brightness(0.4) grayscale(0.6);
     transform: scale(0.95) !important;
@@ -115,8 +121,10 @@ body {
 /* --- スタート画面 --- */
 #start-screen {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: #000;
     z-index: 200;
     display: flex;
@@ -179,16 +187,26 @@ body {
 }
 
 @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(0, 255, 204, 0.7); }
-    70% { box-shadow: 0 0 0 20px rgba(0, 255, 204, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 255, 204, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 204, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 20px rgba(0, 255, 204, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 204, 0);
+    }
 }
 
 /* --- リザルト画面 --- */
 #result-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -243,8 +261,19 @@ body {
     flex-direction: column;
     align-items: center;
 }
-.stat-label { font-size: 0.75rem; color: #666; letter-spacing: 1px; margin-bottom: 5px; }
-.stat-value { font-size: 1.8rem; font-family: var(--font-mono); font-weight: 300; }
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #666;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-family: var(--font-mono);
+    font-weight: 300;
+}
 
 /* --- ボタン --- */
 .btn-group {
@@ -274,14 +303,21 @@ button {
     color: black;
     box-shadow: 0 10px 30px rgba(255, 255, 255, 0.15);
 }
-.btn-restart:active { transform: scale(0.96); }
+
+.btn-restart:active {
+    transform: scale(0.96);
+}
 
 .btn-look {
     background: rgba(255, 255, 255, 0.1);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
-.btn-look:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.15); }
+
+.btn-look:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.15);
+}
 
 /* --- 戻るボタン --- */
 #back-to-result {
@@ -292,10 +328,10 @@ button {
     background: rgba(10, 10, 10, 0.8);
     backdrop-filter: blur(10px);
     color: white;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     padding: 12px 30px;
     border-radius: 50px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     font-size: 0.9rem;
     z-index: 90;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
