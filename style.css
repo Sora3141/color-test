@@ -25,12 +25,16 @@ body {
 /* --- ヘッダーエリア --- */
 .header {
     position: absolute;
-    top: 13vh; /* スコアの位置調整済み */
+    
+    /* ▼▼▼ ここが魔法の計算式です ▼▼▼ */
+    /* 画面の高さの12% + スマホの上の安全地帯(ノッチ分) を足した位置に配置 */
+    top: calc(12vh + env(safe-area-inset-top));
+    
     width: 100%;
     text-align: center;
-    pointer-events: none;
+    pointer-events: none; /* ゲームの邪魔をしない設定 */
     z-index: 10;
-    transform: translateY(-50%);
+    transform: translateY(-50%); /* 自身の高さの半分だけ上にずらして中心を合わせる */
 }
 
 .score-label {
