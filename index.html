@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hue Hunter | Ultimate</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="header">
+        <div class="score-label">SCORE</div>
+        <h1 id="score-display">0</h1>
+    </div>
+
+    <div id="game-board"></div>
+
+    <button id="back-to-result" onclick="showResult()">
+        結果に戻る
+    </button>
+
+    <div id="result-overlay">
+        <div class="rank-label">称号</div>
+        <div id="res-rank" class="rank-name">---</div>
+        <div id="res-msg" class="msg-text">---</div>
+
+        <div class="result-stats">
+            <div class="stat-item">
+                <span class="stat-label">SCORE</span>
+                <span id="res-score" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">BEST</span>
+                <span id="res-best" class="stat-value">0</span>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-restart" onclick="resetGame()">もう一度挑戦</button>
+            <button class="btn-look" onclick="peekBoard()">盤面を確認する</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
