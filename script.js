@@ -14,11 +14,24 @@ const ui = {
     resRank: document.getElementById('res-rank'),
     resMsg: document.getElementById('res-msg'),
     resScore: document.getElementById('res-score'),
-    resBest: document.getElementById('res-best')
+    resBest: document.getElementById('res-best'),
+    startScreen: document.getElementById('start-screen')
 };
 
+// ゲーム初期化（スタート画面で待機）
 function init() {
-    renderGame();
+    // 盤面はまだ空にしておく
+    ui.board.innerHTML = '';
+}
+
+// ボタンが押されたらスタート
+function startGame() {
+    // スタート画面をフェードアウト
+    ui.startScreen.style.opacity = '0';
+    setTimeout(() => {
+        ui.startScreen.style.display = 'none';
+        renderGame(); // ここで初めてゲーム生成
+    }, 500);
 }
 
 function renderGame() {
@@ -87,7 +100,6 @@ function handleIncorrect(e) {
     setTimeout(showResult, 1200);
 }
 
-// --- 日本語のランク判定ロジック ---
 function getRankInfo(diff, score) {
     if (diff > 25) return { rank: "一般市民", msg: "色の違いに気づいて！" };
     if (diff > 15) return { rank: "初心者", msg: "まずは10問を目指そう。" };
