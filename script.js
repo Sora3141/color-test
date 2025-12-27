@@ -1,7 +1,7 @@
 const state = {
     score: 0,
     bestScore: parseInt(localStorage.getItem('hueHunterBest')) || 0,
-    currentDiff: 80, 
+    currentDiff: 50, 
     isGameOver: false,
     isPeeking: false // 盤面確認中かどうかのフラグ
 };
@@ -39,7 +39,7 @@ function renderGame() {
     // 1. HSLでベースの色決定
     const h = Math.floor(Math.random() * 360);
     const s = 70;
-    const l = 50; // 中心付近の明るさにしておくことで、足す/引くどちらも選びやすくする
+    const l = 50; 
 
     // 2. RGB計算
     const tempDiv = document.createElement('div');
@@ -56,27 +56,42 @@ function renderGame() {
     // 3. 差分計算
     const d = Math.max(1, Math.round(state.currentDiff));
 
-    // 4. 足すか引くかをランダムに決定（ここを変更）
-    // まずは50%の確率でプラス(1)かマイナス(-1)を決める
+    // ▼▼▼ ここから変更：RGBのうち1つだけを変えるロジック ▼▼▼
+    
+    // 変更するチャンネルをランダムに選ぶ (0:Red, 1:Green, 2:Blue)
+    const targetChannel = Math.floor(Math.random() * 3);
+
+    // 正解のRGB変数を初期化（まずはベースと同じにする）
+    let tr = r;
+    let tg = g;
+    let tb = b;
+
+    // 変更対象の現在の値を取得
+    let targetValue = (targetChannel === 0) ? r : (targetChannel === 1) ? g : b;
+
+    // 足すか引くかをランダム決定
     let sign = Math.random() < 0.5 ? 1 : -1;
 
-    // もし選んだ方向で計算すると「255を超える」または「0を下回る」色が1つでもある場合、
-    // 強制的に逆方向（signを反転）にする
-    if (
-        (sign === 1 && (r + d > 255 || g + d > 255 || b + d > 255)) ||
-        (sign === -1 && (r - d < 0 || g - d < 0 || b - d < 0))
-    ) {
+    // 壁判定：選ばれたチャンネルだけでチェック
+    // 255を超えたり0を下回る場合のみ逆方向にする
+    if ((sign === 1 && targetValue + d > 255) || (sign === -1 && targetValue - d < 0)) {
         sign *= -1;
     }
 
-    // 正解の色（ターゲット）を計算
-    // 万が一反転しても範囲外になる極端なケースに備えて Math.min/max で0-255に丸める
-    const tr = Math.max(0, Math.min(255, r + (d * sign)));
-    const tg = Math.max(0, Math.min(255, g + (d * sign)));
-    const tb = Math.max(0, Math.min(255, b + (d * sign)));
+    // 選ばれたチャンネルだけに差分を適用
+    if (targetChannel === 0) tr += d * sign;
+    if (targetChannel === 1) tg += d * sign;
+    if (targetChannel === 2) tb += d * sign;
+
+    // 念のための丸め処理
+    tr = Math.max(0, Math.min(255, tr));
+    tg = Math.max(0, Math.min(255, tg));
+    tb = Math.max(0, Math.min(255, tb));
+
+    // ▲▲▲ 変更ここまで ▲▲▲
 
     const targetColorStr = `rgb(${tr}, ${tg}, ${tb})`; // 正解の色
-    const baseColorStr = `rgb(${r}, ${g}, ${b})`;       // 間違いの色（ベース）
+    const baseColorStr = `rgb(${r}, ${g}, ${b})`;       // 間違いの色
 
     const correctIndex = Math.floor(Math.random() * 25);
 
@@ -85,16 +100,13 @@ function renderGame() {
         block.className = 'block';
         const row = Math.floor(i / 5);
         const col = i % 5;
-        // アニメーション遅延
         const delay = (row + col) * 0.04;
         block.style.animationDelay = `${delay}s`;
 
         if (i === correctIndex) {
-            // 正解のブロック
             block.style.backgroundColor = targetColorStr;
             block.id = "target";
             
-            // 既にゲームオーバーなら正解強調表示を維持
             if (state.isGameOver) {
                 block.classList.add('correct-answer');
                 if(state.currentDiff <= 1.5) block.classList.add('god-eye');
@@ -102,10 +114,8 @@ function renderGame() {
                 block.onclick = (e) => handleCorrect(e);
             }
         } else {
-            // その他のブロック
             block.style.backgroundColor = baseColorStr;
             
-            // 既にゲームオーバーならクリック無効にするだけ（fade-outは無し）
             if (!state.isGameOver) {
                 block.onclick = (e) => handleIncorrect(e);
             }
@@ -122,7 +132,9 @@ function handleCorrect(e) {
     ui.score.innerText = state.score;
     
     // 難易度調整
-    state.currentDiff = Math.max(1, state.currentDiff * 0.957);
+   if (state.score % 2 === 0) {
+        state.currentDiff = Math.max(1, state.currentDiff - 1);
+    }
     
     renderGame();
 }
@@ -208,7 +220,7 @@ function peekBoard() {
 // ゲームリセット
 function resetGame() {
     state.score = 0;
-    state.currentDiff = 80; 
+    state.currentDiff = 50; 
     state.isGameOver = false;
     state.isPeeking = false;
     
