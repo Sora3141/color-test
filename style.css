@@ -22,13 +22,93 @@ body {
     background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
 }
 
-/* --- スタート画面 (新規追加) --- */
+/* --- ヘッダーエリア --- */
+.header {
+    position: absolute;
+    top: 13vh; /* スコアの位置調整済み */
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 10;
+    transform: translateY(-50%);
+}
+
+.score-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.5;
+    margin-bottom: 5px;
+}
+
+#score-display {
+    font-family: var(--font-mono);
+    font-size: 4rem;
+    font-weight: 200;
+    line-height: 1;
+    margin: 0;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* --- ゲームボード --- */
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    width: 90vw;
+    max-width: 400px;
+    aspect-ratio: 1 / 1;
+    position: relative;
+}
+
+.block {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    cursor: pointer;
+    position: relative;
+    transform: scale(0);
+    opacity: 0;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    -webkit-tap-highlight-color: transparent;
+    transition: filter 0.3s ease;
+}
+
+@keyframes popIn {
+    to { transform: scale(1); opacity: 1; }
+}
+
+.block:active {
+    transform: scale(0.92) !important;
+    transition: transform 0.1s;
+}
+
+/* --- 状態変化クラス --- */
+.correct-answer {
+    z-index: 20;
+    box-shadow: 0 0 0 4px #fff, 0 10px 40px rgba(0,0,0,0.5);
+    transform: scale(1.05) !important;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.fade-out {
+    filter: brightness(0.4) grayscale(0.6);
+    transform: scale(0.95) !important;
+    transition: all 0.5s ease;
+}
+
+.god-eye {
+    box-shadow: 0 0 0 4px var(--accent-color), 0 0 60px var(--accent-color);
+}
+
+/* --- スタート画面 --- */
 #start-screen {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: #000; /* 完全な黒で没入感を */
-    z-index: 200; /* 最前面 */
+    background: #000;
+    z-index: 200;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -94,85 +174,7 @@ body {
     100% { box-shadow: 0 0 0 0 rgba(0, 255, 204, 0); }
 }
 
-
-/* --- 以下、既存のスタイル --- */
-
-.header {
-    position: absolute;
-    top: env(safe-area-inset-top, 20px);
-    width: 100%;
-    text-align: center;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.score-label {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    opacity: 0.5;
-    margin-bottom: 5px;
-}
-
-#score-display {
-    font-family: var(--font-mono);
-    font-size: 4rem;
-    font-weight: 200;
-    line-height: 1;
-    margin: 0;
-    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-#game-board {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    width: 90vw;
-    max-width: 400px;
-    aspect-ratio: 1 / 1;
-    position: relative;
-}
-
-.block {
-    width: 100%;
-    height: 100%;
-    border-radius: 12px;
-    cursor: pointer;
-    position: relative;
-    transform: scale(0);
-    opacity: 0;
-    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    -webkit-tap-highlight-color: transparent;
-    transition: filter 0.3s ease;
-}
-
-@keyframes popIn {
-    to { transform: scale(1); opacity: 1; }
-}
-
-.block:active {
-    transform: scale(0.92) !important;
-    transition: transform 0.1s;
-}
-
-.correct-answer {
-    z-index: 20;
-    box-shadow: 0 0 0 4px #fff, 0 10px 40px rgba(0,0,0,0.5);
-    transform: scale(1.05) !important;
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.fade-out {
-    filter: brightness(0.4) grayscale(0.6);
-    transform: scale(0.95) !important;
-    transition: all 0.5s ease;
-}
-
-.god-eye {
-    box-shadow: 0 0 0 4px var(--accent-color), 0 0 60px var(--accent-color);
-}
-
+/* --- リザルト画面 --- */
 #result-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -189,9 +191,16 @@ body {
     transition: opacity 0.3s ease;
 }
 
-#result-overlay.visible { opacity: 1; }
+#result-overlay.visible {
+    opacity: 1;
+}
 
-.rank-label { font-size: 0.9rem; letter-spacing: 1px; color: #888; margin-bottom: 8px; }
+.rank-label {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    color: #888;
+    margin-bottom: 8px;
+}
 
 .rank-name {
     font-size: 2.8rem;
@@ -206,35 +215,65 @@ body {
     line-height: 1.1;
 }
 
-.msg-text { color: var(--accent-color); font-size: 1rem; margin-bottom: 40px; font-weight: 500; }
+.msg-text {
+    color: var(--accent-color);
+    font-size: 1rem;
+    margin-bottom: 40px;
+    font-weight: 500;
+}
 
-.result-stats { display: flex; gap: 40px; margin-bottom: 50px; }
-.stat-item { display: flex; flex-direction: column; align-items: center; }
+.result-stats {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 50px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .stat-label { font-size: 0.75rem; color: #666; letter-spacing: 1px; margin-bottom: 5px; }
 .stat-value { font-size: 1.8rem; font-family: var(--font-mono); font-weight: 300; }
 
-.btn-group { display: flex; flex-direction: column; gap: 16px; width: 70%; max-width: 280px; }
+/* --- ボタン --- */
+.btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 70%;
+    max-width: 280px;
+}
 
 button {
-    border: none; outline: none; cursor: pointer;
+    border: none;
+    outline: none;
+    cursor: pointer;
     font-family: var(--font-main);
+    font-weight: 600;
+    letter-spacing: 0.5px;
     transition: transform 0.1s, box-shadow 0.2s;
+    border-radius: 30px;
+    padding: 18px 0;
+    font-size: 1rem;
+    width: 100%;
 }
 
 .btn-restart {
-    background: white; color: black;
+    background: white;
+    color: black;
     box-shadow: 0 10px 30px rgba(255, 255, 255, 0.15);
-    border-radius: 30px; padding: 18px 0; font-size: 1rem; width: 100%; font-weight: 600;
 }
 .btn-restart:active { transform: scale(0.96); }
 
 .btn-look {
-    background: rgba(255, 255, 255, 0.1); color: white;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 30px; padding: 18px 0; font-size: 1rem; width: 100%; font-weight: 600;
 }
 .btn-look:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.15); }
 
+/* --- 戻るボタン --- */
 #back-to-result {
     position: fixed;
     bottom: max(30px, env(safe-area-inset-bottom));
@@ -253,4 +292,6 @@ button {
     font-weight: 600;
 }
 
-#back-to-result.visible { transform: translateX(-50%) translateY(0); }
+#back-to-result.visible {
+    transform: translateX(-50%) translateY(0);
+}
