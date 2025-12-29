@@ -177,7 +177,7 @@ function getRankInfo(diff, score) {
     if (diff <= 45)  return { rank: "見習い画家", msg: "才能の片鱗が見え隠れしています。" };
 
     // スコア0〜9の間
-    return { rank: "一般市民", msg: "あなたの色彩は、どの領域？" };
+    return { rank: "一般市民", msg: "まだ見ぬ色が、君を待っている。その瞳を磨こう。" };
 }
 // 結果画面表示
 function showResult() {
